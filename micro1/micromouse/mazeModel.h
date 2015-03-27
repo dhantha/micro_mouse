@@ -10,11 +10,11 @@ struct SMazeVert
   short searchPred;
 };
 
-#define MAZE_SIZE (16)
-extern struct SMazeVert mazeVerts[MAZE_SIZE*MAZE_SIZE];
+const int mazeSize = 16;
+extern struct SMazeVert mazeVerts[mazeSize*mazeSize];
 
 // Mouse maze state
-extern int mouseDir;
+extern short mouseDir;
 extern short mouseBlock;
 extern short nextBlock;
 
