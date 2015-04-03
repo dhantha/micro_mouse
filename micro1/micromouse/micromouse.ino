@@ -18,19 +18,16 @@ enum ESolveState
 
 enum ESolveState mouseSolveState = eSearching;
 
-
-//SoftwareSerial mySerial(6, 5); //RX TX
-
 void setup()
 {
   setupMaze();
 
-
-  // TODO: These need to be in drive/io emulation setup
-  // Serial.begin(9600);
-
+  // DEBUG: Used for debugging output to computer
+  Serial.begin(9600);
+  
   motorSetup();
   encoderSetup();
+  compassSetup();
 
   // irRangeSetup();
 
@@ -51,6 +48,10 @@ void loop()
 {
   encoderUpdateCounts();
   readIRRanges();
+  
+//  int test = getCompassResults();
+//  Serial.print("DataX: ");
+//  Serial.println(test);
 
   // State machine
   mouseDriveMachine();

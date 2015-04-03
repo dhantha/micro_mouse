@@ -1,10 +1,26 @@
+#include <Wire.h>
+#include <SoftwareSerial.h>
+
 const int velocityCalcTicks = 50;
 
 // Encoder GPIO pin IDs
-const int encoderPinLeftA = 50;
-const int encoderPinLeftB = 51;
-const int encoderPinRightA = 52;
-const int encoderPinRightB = 53;
+const int encoderPinLeftA = 26;
+const int encoderPinLeftB = 27;
+const int encoderPinRightA = 28;
+const int encoderPinRightB = 29;
+
+// Compass Constants
+const int compassI2CAddr = 0x1E;
+const int compassRegConfigA = 0x00;
+const int compassRegConfigB = 0x01;
+const int compassRegMode = 0x02;
+const int compassRegDataX = 0x03;
+const int compassRegDataZ = 0x05;
+const int compassRegDataY = 0x07;
+const int compassRegStatus = 0x09;
+const int compassRegIDA = 0x0A;
+const int compassRegIDB = 0x0B;
+const int compassRegIDC = 0x0C;
 
 // Edge detection values
 int prevLeftEncoder = 0;
@@ -51,6 +67,98 @@ void encoderSetup()
 
 	leftEncVelocity = 0.0;
 	rightEncVelocity = 0.0;
+}
+
+void compassSetup()
+{
+  int ret;
+  
+  Wire.beginTransmission(compassI2CAddr);
+  Wire.write(0);
+  ret = Wire.endTransmission(false);
+  
+  ret = Wire.requestFrom(compassI2CAddr, 1, 1);
+  unsigned char IDA = Wire.read();
+  
+  Serial.println(IDA);
+  
+  Wire.beginTransmission(compassI2CAddr);
+  Wire.write(compassRegIDB);
+  ret = Wire.endTransmission(false);
+  
+  ret = Wire.requestFrom(compassI2CAddr, 1, 1);
+  unsigned char IDB = Wire.read();
+  
+  Serial.println(IDB);
+  
+  Wire.beginTransmission(compassI2CAddr);
+  Wire.write(compassRegIDC);
+  ret = Wire.endTransmission(false);
+  
+  ret = Wire.requestFrom(compassI2CAddr, 1, 1);
+  unsigned char IDC = Wire.read();
+  
+  Serial.println(IDC);
+  
+//  // 15Hz sample rate, 8 averaged samples
+//  Wire.beginTransmission(compassI2CAddr);
+//  Wire.write(compassRegConfigA);
+//  Wire.write(0x70);
+//  ret = Wire.endTransmission(false);
+//  
+//  // Gain set to 5. 
+//  Wire.beginTransmission(compassI2CAddr);
+//  Wire.write(compassRegConfigB);
+//  Wire.write(0xA0);
+//  ret = Wire.endTransmission(false);
+//  
+//  // Continuous read mode
+//  Wire.beginTransmission(compassI2CAddr);
+//  Wire.write(compassRegMode);
+//  Wire.write(0x00);
+//  ret = Wire.endTransmission(false);
+//  
+//  // Read status byte
+//  unsigned char status = 0;
+//  while ( !(status & 0x01) )
+//  {
+//    Wire.beginTransmission(compassI2CAddr);
+//    Wire.write(compassRegStatus);
+//    ret = Wire.endTransmission(false);
+//    ret = Wire.requestFrom(compassI2CAddr, 1, 1);
+//    status = Wire.read();
+//    Serial.println(status);
+//  }
+}
+
+unsigned char getCompassStatus()
+{
+  int ret;
+  
+  Wire.beginTransmission(compassI2CAddr);
+  Wire.write(compassRegStatus);
+  ret = Wire.endTransmission(false);
+  
+  ret = Wire.requestFrom(compassI2CAddr, 1, 1);
+  unsigned char status = Wire.read();
+  
+  return status;
+}
+
+int getCompassResults()
+{
+  int ret;
+  
+  Wire.beginTransmission(compassI2CAddr);
+  Wire.write(compassRegDataX);
+  ret = Wire.endTransmission(false);
+  
+  ret = Wire.requestFrom(compassI2CAddr, 6, 1);
+  short dataX = Wire.read();
+  short dataZ = Wire.read();
+  short dataY = Wire.read();
+  
+  return dataX;
 }
 
 

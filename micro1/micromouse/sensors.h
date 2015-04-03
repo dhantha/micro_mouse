@@ -18,3 +18,9 @@ int checkWallRight();
 int checkWallFront();
 
 int stopWallFront();
+
+
+// Compass functions
+void compassSetup();
+unsigned char getCompassStatus();
+int getCompassResults();
