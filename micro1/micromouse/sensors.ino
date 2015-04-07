@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
+#include <LSM303.h>
 
 const int velocityCalcTicks = 50;
 
@@ -40,6 +41,9 @@ int rightEncVelCount = 0;
 double leftEncVelocity = 0.0;
 double rightEncVelocity = 0.0;
 
+// compass variables
+LSM303 compass;
+
 // Read raw encoder hi/lo values and combine to get raw double-res value
 int encoderReadRaw(int pinA, int pinB)
 {
@@ -71,6 +75,7 @@ void encoderSetup()
 
 void compassSetup()
 {
+  /*
   int ret;
   
   Wire.beginTransmission(compassI2CAddr);
@@ -99,6 +104,10 @@ void compassSetup()
   unsigned char IDC = Wire.read();
   
   Serial.println(IDC);
+  */
+  Wire.begin();
+  compass.init();
+  compass.enableDefault();  
   
 //  // 15Hz sample rate, 8 averaged samples
 //  Wire.beginTransmission(compassI2CAddr);
@@ -131,34 +140,28 @@ void compassSetup()
 //  }
 }
 
-unsigned char getCompassStatus()
+//unsigned char getCompassStatus()
+//{
+//  int ret;
+//  
+//  Wire.beginTransmission(compassI2CAddr);
+//  Wire.write(compassRegStatus);
+//  ret = Wire.endTransmission(false);
+//  
+//  ret = Wire.requestFrom(compassI2CAddr, 1, 1);
+//  unsigned char status = Wire.read();
+//  
+//  return status;
+//}
+
+void readCompassHeading()
 {
-  int ret;
-  
-  Wire.beginTransmission(compassI2CAddr);
-  Wire.write(compassRegStatus);
-  ret = Wire.endTransmission(false);
-  
-  ret = Wire.requestFrom(compassI2CAddr, 1, 1);
-  unsigned char status = Wire.read();
-  
-  return status;
+  compass.read();
 }
 
-int getCompassResults()
+float getCompassHeading()
 {
-  int ret;
-  
-  Wire.beginTransmission(compassI2CAddr);
-  Wire.write(compassRegDataX);
-  ret = Wire.endTransmission(false);
-  
-  ret = Wire.requestFrom(compassI2CAddr, 6, 1);
-  short dataX = Wire.read();
-  short dataZ = Wire.read();
-  short dataY = Wire.read();
-  
-  return dataX;
+  return compass.heading();
 }
 
 
@@ -254,6 +257,20 @@ void readIRRanges()
 	irRangeRight = analogRead(irPinRight);
 }
 
+double getWallRangeLeft()
+{
+  return (double) irRangeLeft;
+}
+
+double getWallRangeRight()
+{
+  return (double) irRangeRight;
+}
+
+double getWallRangeFront()
+{
+  return (double) irRangeFront;
+}
 
 int checkWallLeft()
 {

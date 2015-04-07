@@ -28,6 +28,7 @@ void setup()
   motorSetup();
   encoderSetup();
   compassSetup();
+  
 
   // irRangeSetup();
 
@@ -48,10 +49,22 @@ void loop()
 {
   encoderUpdateCounts();
   readIRRanges();
+  readCompassHeading();
   
-//  int test = getCompassResults();
+//  float test = getCompassResults();
 //  Serial.print("DataX: ");
 //  Serial.println(test);
+  
+  double irLeft = getWallRangeLeft();
+  double irRight = getWallRangeRight();
+  double irFront = getWallRangeFront();
+  
+//  Serial.print("IR: ");
+//  Serial.print(irLeft);
+//  Serial.print(", ");
+//  Serial.print(irRight);
+//  Serial.print(", ");
+//  Serial.println(irFront);
 
   // State machine
   mouseDriveMachine();

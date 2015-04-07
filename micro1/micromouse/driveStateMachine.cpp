@@ -10,6 +10,19 @@ short nextBlock = -1;
 
 enum EDriveState mouseDriveState = eCenterBlock;
 
+float mouseHeading = 0;
+void resetHeading()
+{
+  mouseHeading = getCompassHeading();
+}
+
+double maintainHeadingOffset()
+{
+  const double alpha = 0.1;
+  double headingDelta = (getCompassHeading() - mouseHeading);
+  
+  return alpha*headingDelta;
+}
 
 void enterDriveState(enum EDriveState nextState)
 {
@@ -62,6 +75,7 @@ void mouseDriveMachine()
 	// CenterBlock is the state where the mouse decides what to do next
 	if ( inDriveState(eCenterBlock) )
 	{
+                resetHeading();
 		encoderResetDistanceCounters();
 
 		// Depending on solve-state
@@ -87,6 +101,7 @@ void mouseDriveMachine()
 		if ( nextBlock < 0 )
 			enterDriveState(eCenterBlock);
 
+                forwardOffset = maintainHeadingOffset();
 		motorSetForwardSpeed(forwardOffset);
 
 		if ( encoderForwardBlockFinished() )
@@ -100,6 +115,7 @@ void mouseDriveMachine()
 	// Enter block handles driving from the "edge" to center of a block
 	else if ( inDriveState(eEnterBlock) )
 	{
+                forwardOffset = maintainHeadingOffset();
 		motorSetForwardSpeed(forwardOffset);
 
 		if ( encoderForwardBlockFinished() )
@@ -127,6 +143,7 @@ void mouseDriveMachine()
 		{
 			enterDriveState(eLeaveBlock);
 
+                        resetHeading();
 			encoderResetDistanceCounters();
 			updateMouseDir(-2);
 		}
@@ -140,6 +157,7 @@ void mouseDriveMachine()
 		{
 			enterDriveState(eLeaveBlock);
 
+                        resetHeading()
 			encoderResetDistanceCounters();
 			updateMouseDir(+1);
 		}
@@ -153,12 +171,14 @@ void mouseDriveMachine()
 		{
 			enterDriveState(eLeaveBlock);
 
+                        resetHeading();
 			encoderResetDistanceCounters();
 			updateMouseDir(-1);
 		}
 	}
 	else if ( inDriveState(eStopped) )
 	{
+                resetHeading();
 		motorSetStopSpeed();
 	}
 

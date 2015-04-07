@@ -13,6 +13,10 @@ int encoderTurn180Finished();
 // IR Ranging functions
 void readIRRanges();
 
+double getWallRangeLeft();
+double getWallRangeRight();
+double getWallRangeFront();
+
 int checkWallLeft();
 int checkWallRight();
 int checkWallFront();
@@ -22,5 +26,5 @@ int stopWallFront();
 
 // Compass functions
 void compassSetup();
-unsigned char getCompassStatus();
-int getCompassResults();
+void readCompassHeading();
+float getCompassHeading();
