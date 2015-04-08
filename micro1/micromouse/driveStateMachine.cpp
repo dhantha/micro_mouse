@@ -16,10 +16,15 @@ void resetHeading()
   mouseHeading = getCompassHeading();
 }
 
+double getGoalHeading()
+{
+  return mouseHeading;
+}
+
 double maintainHeadingOffset()
 {
-  const double alpha = 0.1;
-  double headingDelta = (getCompassHeading() - mouseHeading);
+  const double alpha = 0.0;
+  double headingDelta = calcHeadingDelta(getCompassHeading(),mouseHeading);
   
   return alpha*headingDelta;
 }
@@ -157,7 +162,7 @@ void mouseDriveMachine()
 		{
 			enterDriveState(eLeaveBlock);
 
-                        resetHeading()
+                        resetHeading();
 			encoderResetDistanceCounters();
 			updateMouseDir(+1);
 		}

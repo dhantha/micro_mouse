@@ -28,3 +28,4 @@ int stopWallFront();
 void compassSetup();
 void readCompassHeading();
 float getCompassHeading();
+double calcHeadingDelta(double headingA, double headingB);

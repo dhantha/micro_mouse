@@ -73,95 +73,67 @@ void encoderSetup()
 	rightEncVelocity = 0.0;
 }
 
+
+const int runAvgLen = 4;
+double runHeadings[runAvgLen];
+double runSum = 0.0;
+
 void compassSetup()
 {
-  /*
-  int ret;
-  
-  Wire.beginTransmission(compassI2CAddr);
-  Wire.write(0);
-  ret = Wire.endTransmission(false);
-  
-  ret = Wire.requestFrom(compassI2CAddr, 1, 1);
-  unsigned char IDA = Wire.read();
-  
-  Serial.println(IDA);
-  
-  Wire.beginTransmission(compassI2CAddr);
-  Wire.write(compassRegIDB);
-  ret = Wire.endTransmission(false);
-  
-  ret = Wire.requestFrom(compassI2CAddr, 1, 1);
-  unsigned char IDB = Wire.read();
-  
-  Serial.println(IDB);
-  
-  Wire.beginTransmission(compassI2CAddr);
-  Wire.write(compassRegIDC);
-  ret = Wire.endTransmission(false);
-  
-  ret = Wire.requestFrom(compassI2CAddr, 1, 1);
-  unsigned char IDC = Wire.read();
-  
-  Serial.println(IDC);
-  */
   Wire.begin();
-  compass.init();
-  compass.enableDefault();  
+  if ( !compass.init() )
+  {
+    Serial.println("Error initializing IMU");
+    return;
+  }
   
-//  // 15Hz sample rate, 8 averaged samples
-//  Wire.beginTransmission(compassI2CAddr);
-//  Wire.write(compassRegConfigA);
-//  Wire.write(0x70);
-//  ret = Wire.endTransmission(false);
-//  
-//  // Gain set to 5. 
-//  Wire.beginTransmission(compassI2CAddr);
-//  Wire.write(compassRegConfigB);
-//  Wire.write(0xA0);
-//  ret = Wire.endTransmission(false);
-//  
-//  // Continuous read mode
-//  Wire.beginTransmission(compassI2CAddr);
-//  Wire.write(compassRegMode);
-//  Wire.write(0x00);
-//  ret = Wire.endTransmission(false);
-//  
-//  // Read status byte
-//  unsigned char status = 0;
-//  while ( !(status & 0x01) )
-//  {
-//    Wire.beginTransmission(compassI2CAddr);
-//    Wire.write(compassRegStatus);
-//    ret = Wire.endTransmission(false);
-//    ret = Wire.requestFrom(compassI2CAddr, 1, 1);
-//    status = Wire.read();
-//    Serial.println(status);
-//  }
+  Serial.print("Initialized IMU type: ");
+  int type = compass.getDeviceType();
+  Serial.println(type);
+  
+  compass.enableDefault();
+  compass.read();
+  
+  runSum = 0.0;
+  double initHeading = compass.heading();
+  for (int i=0; i < runAvgLen; ++i)
+  {
+    runHeadings[i] = initHeading;
+    runSum += runHeadings[i];
+  }
 }
-
-//unsigned char getCompassStatus()
-//{
-//  int ret;
-//  
-//  Wire.beginTransmission(compassI2CAddr);
-//  Wire.write(compassRegStatus);
-//  ret = Wire.endTransmission(false);
-//  
-//  ret = Wire.requestFrom(compassI2CAddr, 1, 1);
-//  unsigned char status = Wire.read();
-//  
-//  return status;
-//}
 
 void readCompassHeading()
 {
+  double dropHeading = runHeadings[runAvgLen-1];
+  for ( int i=runAvgLen-1; i > 0; --i )
+    runHeadings[i] = runHeadings[i-1];
+  
   compass.read();
+  runHeadings[0] = compass.heading();
+  
+  runSum = runSum - dropHeading + runHeadings[0];
 }
 
 float getCompassHeading()
 {
-  return compass.heading();
+  return runSum / ((double) runAvgLen);
+}
+
+double calcHeadingDelta(double headingA, double headingB)
+{
+  // Returns deltaH = headingB-headingA (mod 360)
+  double deltaH = headingB - headingA;
+  if ( deltaH > 180.0 )
+  {
+    deltaH = deltaH - 360.0;
+  }
+  else if ( deltaH < -180.0 )
+  {
+    deltaH = deltaH + 360.0;
+  }
+  
+  return deltaH;
 }
 
 

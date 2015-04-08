@@ -51,8 +51,17 @@ void loop()
   readIRRanges();
   readCompassHeading();
   
-//  float test = getCompassResults();
-//  Serial.print("DataX: ");
+//  double headingDelta = maintainHeadingOffset();
+//  double goalHeading = getGoalHeading();
+//  double curHeading = getCompassHeading();
+//  Serial.print(curHeading);
+//  Serial.print(", ");
+//  Serial.print(goalHeading);
+//  Serial.print(", ");
+//  Serial.println(headingDelta);
+  
+//  float test = getGoalHeading();
+//  Serial.print("Heading: ");
 //  Serial.println(test);
   
   double irLeft = getWallRangeLeft();

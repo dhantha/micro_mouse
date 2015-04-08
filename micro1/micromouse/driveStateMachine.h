@@ -23,3 +23,8 @@ extern enum EDriveState mouseDriveState;
 
 void enterDriveState(enum EDriveState nextState);
 void mouseDriveMachine();
+
+
+//Debug only!!!
+double maintainHeadingOffset();
+double getGoalHeading();
