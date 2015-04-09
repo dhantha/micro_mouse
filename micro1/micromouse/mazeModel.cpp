@@ -3,42 +3,62 @@
 
 struct SMazeVert mazeVerts[mazeSize*mazeSize];
 
+int bMouseOriented = 0;
+
+
+void setWalls();
+
+void resetMazeVert(int iVert, int jVert)
+{
+	const int mazeOffsetPairs[] = {-1,0,0,-1,1,0,0,1};
+
+	mazeVerts[iVert+jVert*mazeSize].explored = 0;
+	mazeVerts[iVert+jVert*mazeSize].dist = 65535;
+
+	mazeVerts[iVert+jVert*mazeSize].bestPred = -1;
+	mazeVerts[iVert+jVert*mazeSize].searchPred = -1;
+
+	for ( int k=0; k < 4; ++k )
+	{
+		int iAdjVert = iVert+mazeOffsetPairs[2*k];
+		int jAdjVert = iVert+mazeOffsetPairs[2*k+1];
+
+		mazeVerts[iVert+jVert*mazeSize].adjVertIds[k] = -1;
+
+		if ( iAdjVert < 0 || iAdjVert >= mazeSize )
+			continue;
+
+		if ( jAdjVert < 0 || jAdjVert >= mazeSize )
+			continue;
+
+		mazeVerts[iVert+jVert*mazeSize].adjVertIds[k] = iAdjVert + jAdjVert*mazeSize;
+	}
+}
+
 void setupMaze()
 {
   int i = 0;
   int j = 0;
-  int k = 0;
-
-  int mazeOffsetPairs[] = {-1,0,0,-1,1,0,0,1};
 
   int curEdgeId = 0;
   for ( j=0; j < mazeSize; ++j )
   {
     for ( i=0; i < mazeSize; ++i )
     {
-      mazeVerts[i+j*mazeSize].explored = 0;
-      mazeVerts[i+j*mazeSize].dist = 65535;
-
-      mazeVerts[i+j*mazeSize].bestPred = -1;
-      mazeVerts[i+j*mazeSize].searchPred = -1;
-
-      for ( k=0; k < 4; ++k )
-      {
-        int iAdjVert = i+mazeOffsetPairs[2*k];
-        int jAdjVert = j+mazeOffsetPairs[2*k+1];
-
-		mazeVerts[i+j*mazeSize].adjVertIds[k] = -1;
-
-        if ( iAdjVert < 0 || iAdjVert >= mazeSize )
-          continue;
-
-        if ( jAdjVert < 0 || jAdjVert >= mazeSize )
-          continue;
-
-      	mazeVerts[i+j*mazeSize].adjVertIds[k] = iAdjVert + jAdjVert*mazeSize;
-      }
+    	resetMazeVert(i,j);
     }
   }
+
+  setWalls();
+
+  // Specialized setup for starting node.
+  mazeVerts[0].explored = 1;
+  mazeVerts[0].dist = 0;
+  mazeVerts[0].adjVertIds[0] = -1;
+  mazeVerts[0].adjVertIds[1] = -1;
+
+  // Mouse doesn't actually know what direction it's pointing
+  bMouseOriented = 0;
 }
 
 //TODO: These updates all belong somewhere else
@@ -71,17 +91,71 @@ void enterMazeBlock(int nextBlock)
 	nextBlock = -1;
 }
 
+int offsetEdgeIdx(int edgeIdx, int offset)
+{
+	int offsetIdx = edgeIdx + offset;
+
+	if ( offsetIdx < 0 )
+		offsetIdx += 4;
+
+	if ( offsetIdx >= 4 )
+		offsetIdx -= 4;
+
+	return offsetIdx;
+}
+
 int getAbsoluteEdgeIdx(int relativeDir)
 {
-    int edgeIdx = mouseDir + relativeDir;
+	return offsetEdgeIdx(mouseDir, relativeDir);
+}
 
-    if ( edgeIdx < 0 )
-      edgeIdx += 4;
 
-    if ( edgeIdx >= 4 )
-      edgeIdx -= 4;
+// Correct maze in case assumed direction was wrong.
+void fixupOrientation()
+{
+	// Position is transposed
+	int jMouse = mouseBlock % mazeSize;
+	int iMouse = mouseBlock / mazeSize;
 
-  return edgeIdx;
+	int actualMouseBlock = iMouse + mazeSize*jMouse;
+
+	for ( int j=0; j <= jMouse; ++j )
+	{
+		// Haven't actually explored these nodes:
+		resetMazeVert(j,iMouse);
+		resetMazeVert(j,iMouse+1);
+
+		// Fixup this node, guaranteed to have walls in all but the 
+		int curVert = iMouse + j*mazeSize;
+		int prevVert = mazeVerts[iMouse + j*mazeSize].adjVertIds[0];
+
+		mazeVerts[curVert].explored = 1;
+		mazeVerts[curVert].dist = j;
+		mazeVerts[curVert].bestPred = prevVert;
+		mazeVerts[curVert].searchPred = prevVert;
+
+		// East side must have a wall
+		int eastVert = mazeVerts[curVert].adjVertIds[2];
+		mazeVerts[curVert].adjVertIds[2] = -1;
+		mazeVerts[eastVert].adjVertIds[0] = -1;
+	}
+
+	mouseDir = 3;
+	mouseBlock = actualMouseBlock;
+}
+
+void setVertWall(int vertIdx, int edgeIdx)
+{
+	int opWallVert = mazeVerts[vertIdx].adjVertIds[edgeIdx];
+
+	// Wall has already been set.
+	if ( opWallVert < 0 )
+		return;
+
+	int opEdgeIdx = offsetEdgeIdx(edgeIdx,2);
+
+	mazeVerts[vertIdx].adjVertIds[edgeIdx] = -1;
+	mazeVerts[opWallVert].adjVertIds[opEdgeIdx] = -1;
 }
 
 
@@ -94,27 +168,40 @@ void setWalls()
 	if ( bWallLeft )
 	{
 		int edgeIdx = getAbsoluteEdgeIdx(-1);
-		mazeVerts[mouseBlock].adjVertIds[edgeIdx] = -1;
+		setVertWall(mouseBlock, edgeIdx);
 	}
 
 	if ( bWallRight )
 	{
 		int edgeIdx = getAbsoluteEdgeIdx(+1);
-		mazeVerts[mouseBlock].adjVertIds[edgeIdx] = -1;
+		setVertWall(mouseBlock, edgeIdx);
 	}
 
 	if ( bWallFront )
 	{
 		int edgeIdx = getAbsoluteEdgeIdx(0);
-		mazeVerts[mouseBlock].adjVertIds[edgeIdx] = -1;
+		setVertWall(mouseBlock, edgeIdx);
+	}
+
+	if ( !bMouseOriented )
+	{
+		if ( !bWallRight )
+			bMouseOriented = 1;
+
+		if ( !bWallLeft )
+		{
+			fixupOrientation();
+			bMouseOriented = 1;
+
+			// We changed orientation, so reset current walls
+			setWalls();
+		}
 	}
 }
 
 void updateAdjacentBlockInfo()
 {
-        int i = 0;
-        int j = 0;
-        int k = 0;
+	int i = 0;
 
 	setWalls();
 
@@ -185,4 +272,110 @@ void findNextBlock()
 	}
 
 	nextBlock = availableEdges[takeEdge];
+}
+
+const int lenX = 4*mazeSize;
+const int lenY = 2*mazeSize;
+
+const int padX = 2;
+const int padY = 1;
+
+char topRow[lenX+padX];
+char mazeStr[lenY*(lenX+padX)];
+
+void debugUpdateMazeString()
+{
+	for ( int i=0; i < mazeSize; ++i )
+	{
+		for ( int k=0; k < 4; ++k )
+			topRow[4*i+k] = '_';
+
+		topRow[lenX] = ' ';
+		topRow[lenX+1] = '\0';
+	}
+
+	for ( int j=0; j < mazeSize; ++j )
+	{
+		for ( int i=0; i < mazeSize; ++i )
+		{
+			mazeStr[(2*j)*(lenX+padX)+4*i] = '|';
+			mazeStr[(2*j+1)*(lenX+padX)+4*i] = '|';
+
+			mazeStr[(2*j)*(lenX+padX)+4*i+1] = ' ';
+			mazeStr[(2*j+1)*(lenX+padX)+4*i+1] = '_';
+			
+			mazeStr[(2*j)*(lenX+padX)+4*i+2] = '?';
+			mazeStr[(2*j+1)*(lenX+padX)+4*i+2] = '_';
+			
+			mazeStr[(2*j)*(lenX+padX)+4*i+3] = ' ';
+			mazeStr[(2*j+1)*(lenX+padX)+4*i+3] = '_';
+		}
+		mazeStr[(2*j)*(lenX+padX)+lenX] = '|';
+		mazeStr[(2*j+1)*(lenX+padX)+lenX] = '|';
+
+		mazeStr[(2*j)*(lenX+padX)+lenX+1] = '\0';
+		mazeStr[(2*j+1)*(lenX+padX)+lenX+1] = '\0';
+	}
+
+	for ( int j=0; j < mazeSize; ++j )
+	{
+		for ( int i=0; i < mazeSize; ++i )
+		{
+			int chkNode = i+j*mazeSize;
+			if ( !mazeVerts[chkNode].explored )
+				continue;
+
+			mazeStr[(2*j)*(lenX+padX)+4*i+2] = '*';
+
+			if ( mazeVerts[chkNode].adjVertIds[0] >= 0 )
+			{
+				mazeStr[(2*j)*(lenX+padX)+4*i] = ' ';
+				mazeStr[(2*j+1)*(lenX+padX)+4*i] = ' ';
+			}
+
+			if ( mazeVerts[chkNode].adjVertIds[1] >= 0 )
+			{
+				mazeStr[(2*(j-1)+1)*(lenX+padX)+4*i+1] = ' ';
+				mazeStr[(2*(j-1)+1)*(lenX+padX)+4*i+2] = ' ';
+				mazeStr[(2*(j-1)+1)*(lenX+padX)+4*i+3] = ' ';
+			}
+
+			if ( mazeVerts[chkNode].adjVertIds[2] >= 0 )
+			{
+				mazeStr[(2*(j+1))*(lenX+padX)+4*i] = '|';
+				mazeStr[(2*(j+1)+1)*(lenX+padX)+4*i] = '|';
+			}
+
+			if ( mazeVerts[chkNode].adjVertIds[3] >= 0 )
+			{
+				mazeStr[(2*j+1)*(lenX+padX)+4*i+1] = ' ';
+				mazeStr[(2*j+1)*(lenX+padX)+4*i+2] = ' ';
+				mazeStr[(2*j+1)*(lenX+padX)+4*i+3] = ' ';
+			}
+
+			if ( chkNode == mouseBlock )
+				mazeStr[(2*j)*(lenX+padX)+4*i+2] = '^';
+		}
+	}
+}
+
+int debugMazePrintRow = -1;
+void debugResetMazePrint()
+{
+	debugMazePrintRow = -1;
+}
+
+char* debugMazeStringRow()
+{
+	if ( debugMazePrintRow < 0 )
+	{
+		++debugMazePrintRow;
+		return topRow;
+	}
+
+	if ( debugMazePrintRow > lenY )
+		return ((char*) 0);
+
+	++debugMazePrintRow;
+	return &(mazeStr[(debugMazePrintRow-1)*(lenX+padX)]);
 }
