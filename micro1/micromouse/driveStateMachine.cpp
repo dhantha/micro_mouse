@@ -39,48 +39,49 @@ int inDriveState(enum EDriveState checkState)
 	return (mouseDriveState == checkState);
 }
 
-// double calcForwardSpeedOffset()
-// {
-// 	// IR range constants for block wall distances
-// 	const int centerVal = 250; // 255;
+double calcForwardSpeedOffset()
+{
+	// IR range constants for block wall distances
+	const int centerVal = 250; // 255;
 
-// 	// Overly simplistic control system constants
-// 	// tries to maintain straight forward movement
-// 	const double alphaEnc = 2.0;
-// 	const double alpha = -0.04;
+	// Overly simplistic control system constants
+	// tries to maintain straight forward movement
+	const double alphaEnc = 2.0;
+	// const double alpha = -0.04;
 
-// 	int bWallLeft = checkWallLeft();
-// 	int bWallRight = checkWallRight();
-// 	int bWallFront = checkWallFront();
+	// int bWallLeft = checkWallLeft();
+	// int bWallRight = checkWallRight();
+	// int bWallFront = checkWallFront();
 
-// 	double deltaLeft = bWallLeft * (irRangeLeft - centerVal);
-// 	double deltaRight = bWallRight * (irRangeRight - centerVal);
+	// double deltaLeft = bWallLeft * (irRangeLeft - centerVal);
+	// double deltaRight = bWallRight * (irRangeRight - centerVal);
 
-// 	double straightDelta = ((leftEncVelocity - rightEncVelocity) - 0.5);
-// 	double meanWallDelta = (deltaLeft-deltaRight);
+	double straightDelta = ((getLeftEncoderVelocity() - getRightEncoderVelocity()) - 0.5);
+	// double meanWallDelta = (deltaLeft-deltaRight);
 
-// 	if ( !bWallLeft && !bWallRight )
-// 	{
-// 		meanWallDelta = 0;
-// 	}
-// 	else
-// 	{
-// 		meanWallDelta = meanWallDelta / (bWallLeft + bWallRight);
-// 	}
+	// if ( !bWallLeft && !bWallRight )
+	// {
+	// 	meanWallDelta = 0;
+	// }
+	// else
+	// {
+	// 	meanWallDelta = meanWallDelta / (bWallLeft + bWallRight);
+	// }
 
-// 	return (alpha*meanWallDelta + alphaEnc*straightDelta);
-// }
+	// return (alpha*meanWallDelta + alphaEnc*straightDelta);
+
+	return alphaEnc*straightDelta;
+}
 
 
 void mouseDriveMachine()
 {
-	// double forwardOffset = calcForwardSpeedOffset();
-	double forwardOffset = 0.0;
+	double forwardOffset = calcForwardSpeedOffset();
+	//double forwardOffset = 0.0;
 
 	// CenterBlock is the state where the mouse decides what to do next
 	if ( inDriveState(eCenterBlock) )
 	{
-                resetHeading();
 		encoderResetDistanceCounters();
 
 		// Depending on solve-state
@@ -106,7 +107,6 @@ void mouseDriveMachine()
 		if ( nextBlock < 0 )
 			enterDriveState(eCenterBlock);
 
-                forwardOffset = maintainHeadingOffset();
 		motorSetForwardSpeed(forwardOffset);
 
 		if ( encoderForwardBlockFinished() )
@@ -120,7 +120,6 @@ void mouseDriveMachine()
 	// Enter block handles driving from the "edge" to center of a block
 	else if ( inDriveState(eEnterBlock) )
 	{
-                forwardOffset = maintainHeadingOffset();
 		motorSetForwardSpeed(forwardOffset);
 
 		if ( encoderForwardBlockFinished() )
@@ -148,7 +147,6 @@ void mouseDriveMachine()
 		{
 			enterDriveState(eLeaveBlock);
 
-                        resetHeading();
 			encoderResetDistanceCounters();
 			updateMouseDir(-2);
 		}
@@ -162,7 +160,6 @@ void mouseDriveMachine()
 		{
 			enterDriveState(eLeaveBlock);
 
-                        resetHeading();
 			encoderResetDistanceCounters();
 			updateMouseDir(+1);
 		}
@@ -176,14 +173,12 @@ void mouseDriveMachine()
 		{
 			enterDriveState(eLeaveBlock);
 
-                        resetHeading();
 			encoderResetDistanceCounters();
 			updateMouseDir(-1);
 		}
 	}
 	else if ( inDriveState(eStopped) )
 	{
-                resetHeading();
 		motorSetStopSpeed();
 	}
 

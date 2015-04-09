@@ -4,6 +4,9 @@ void encoderSetup();
 void encoderUpdateCounts();
 void encoderResetDistanceCounters();
 
+double getLeftEncoderVelocity();
+double getRightEncoderVelocity();
+
 // Encoder block-specific functions
 int encoderForwardBlockFinished();
 int encoderTurn90Finished();

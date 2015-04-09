@@ -136,6 +136,15 @@ double calcHeadingDelta(double headingA, double headingB)
   return deltaH;
 }
 
+double getLeftEncoderVelocity()
+{
+	return leftEncVelocity;
+}
+
+double getRightEncoderVelocity()
+{
+	return rightEncVelocity;
+}
 
 void encoderUpdateCounts()
 {
