@@ -8,6 +8,8 @@
 #include "sensors.h"
 #include "motors.h"
 
+double calcForwardSpeedOffset();
+
 enum ESolveState
 {
   eSearching = 0,
@@ -27,7 +29,6 @@ void setup()
   
   motorSetup();
   encoderSetup();
-  compassSetup();
   
 
   // irRangeSetup();
@@ -49,7 +50,13 @@ void loop()
 {
   encoderUpdateCounts();
   readIRRanges();
-  readCompassHeading();
+
+  // double leftVel = getLeftEncoderVelocity();
+  // double rightVel = getRightEncoderVelocity();
+
+  // Serial.print(leftVel);
+  // Serial.print(", ");
+  // Serial.println(rightVel);
   
 //  double headingDelta = maintainHeadingOffset();
 //  double goalHeading = getGoalHeading();
@@ -67,6 +74,9 @@ void loop()
   double irLeft = getWallRangeLeft();
   double irRight = getWallRangeRight();
   double irFront = getWallRangeFront();
+
+  // double offset = calcForwardSpeedOffset();
+  // Serial.println(offset);
   
 //  Serial.print("IR: ");
 //  Serial.print(irLeft);

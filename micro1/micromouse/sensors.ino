@@ -2,14 +2,6 @@
 #include <SoftwareSerial.h>
 #include <LSM303.h>
 
-const int velocityCalcTicks = 50;
-
-// Encoder GPIO pin IDs
-const int encoderPinLeftA = 26;
-const int encoderPinLeftB = 27;
-const int encoderPinRightA = 28;
-const int encoderPinRightB = 29;
-
 // Compass Constants
 const int compassI2CAddr = 0x1E;
 const int compassRegConfigA = 0x00;
@@ -23,56 +15,13 @@ const int compassRegIDA = 0x0A;
 const int compassRegIDB = 0x0B;
 const int compassRegIDC = 0x0C;
 
-// Edge detection values
-int prevLeftEncoder = 0;
-int prevRightEncoder = 0;
 
-// Encoder counters for distance calculations
-int leftEncCount = 0;
-int rightEncCount = 0;
 
-// Velocity in encoder ticks between update calls
-// TODO: Should really do this using an actual timing element
-int updateTicks = 0;
-
-int leftEncVelCount = 0;
-int rightEncVelCount = 0;
-
-double leftEncVelocity = 0.0;
-double rightEncVelocity = 0.0;
+//////////////////////////////////////////////////
+// Compass Functions
 
 // compass variables
 LSM303 compass;
-
-// Read raw encoder hi/lo values and combine to get raw double-res value
-int encoderReadRaw(int pinA, int pinB)
-{
-	// Direct encoder readouts (high/low)
-	int encLineA = digitalRead(pinA);
-	int encLineB = digitalRead(pinB);
-
-	// Combine the encoder lines to double the resolution (rate) of encoder counts
-	return ( !(encLineA && encLineB) && ( encLineA || encLineB ) );
-}
-
-void encoderSetup()
-{
-	pinMode(encoderPinLeftA, INPUT);
-	pinMode(encoderPinLeftB, INPUT);
-
-	pinMode(encoderPinRightA, INPUT);
-	pinMode(encoderPinRightB, INPUT);
-
-	prevLeftEncoder = encoderReadRaw(encoderPinLeftA, encoderPinLeftB);
-	prevRightEncoder = encoderReadRaw(encoderPinRightA, encoderPinRightB);
-
-	leftEncVelCount = 0;
-	rightEncVelCount = 0;
-
-	leftEncVelocity = 0.0;
-	rightEncVelocity = 0.0;
-}
-
 
 const int runAvgLen = 4;
 double runHeadings[runAvgLen];
@@ -134,6 +83,67 @@ double calcHeadingDelta(double headingA, double headingB)
   }
   
   return deltaH;
+}
+
+
+
+//////////////////////////////////////////////////
+// Encoder funcitons
+
+const int velocityCalcTicks = 50;
+
+// Encoder GPIO pin IDs
+const int encoderPinLeftA = 26;
+const int encoderPinLeftB = 27;
+const int encoderPinRightA = 28;
+const int encoderPinRightB = 29;
+
+// Edge detection values
+int prevLeftEncoder = 0;
+int prevRightEncoder = 0;
+
+// Encoder counters for distance calculations
+int leftEncCount = 0;
+int rightEncCount = 0;
+
+// Velocity in encoder ticks between update calls
+// TODO: Should really do this using an actual timing element
+int updateTicks = 0;
+
+int leftEncVelCount = 0;
+int rightEncVelCount = 0;
+
+double leftEncVelocity = 0.0;
+double rightEncVelocity = 0.0;
+
+
+// Read raw encoder hi/lo values and combine to get raw double-res value
+int encoderReadRaw(int pinA, int pinB)
+{
+	// Direct encoder readouts (high/low)
+	int encLineA = digitalRead(pinA);
+	int encLineB = digitalRead(pinB);
+
+	// Combine the encoder lines to double the resolution (rate) of encoder counts
+	return ( !(encLineA && encLineB) && ( encLineA || encLineB ) );
+}
+
+void encoderSetup()
+{
+	pinMode(encoderPinLeftA, INPUT);
+	pinMode(encoderPinLeftB, INPUT);
+
+	pinMode(encoderPinRightA, INPUT);
+	pinMode(encoderPinRightB, INPUT);
+
+	prevLeftEncoder = encoderReadRaw(encoderPinLeftA, encoderPinLeftB);
+	prevRightEncoder = encoderReadRaw(encoderPinRightA, encoderPinRightB);
+
+	leftEncVelCount = 0;
+	rightEncVelCount = 0;
+
+	leftEncVelocity = 0.0;
+	rightEncVelocity = 0.0;
 }
 
 double getLeftEncoderVelocity()
@@ -216,6 +226,9 @@ int encoderTurn180Finished()
 }
 
 
+
+//////////////////////////////////////////////////
+// IR ranging funcitons
 
 // IR Range pins
 const int irPinFront = 8;

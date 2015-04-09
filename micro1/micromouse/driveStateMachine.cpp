@@ -42,35 +42,36 @@ int inDriveState(enum EDriveState checkState)
 double calcForwardSpeedOffset()
 {
 	// IR range constants for block wall distances
-	const int centerVal = 250; // 255;
+	const double failCentering = 175.0; // 
+	const double centerVal = 250.0; // 255.0;
 
 	// Overly simplistic control system constants
 	// tries to maintain straight forward movement
-	const double alphaEnc = 2.0;
-	// const double alpha = -0.04;
+	const double encOffset = 0.02;
+	const double alphaEnc = -5.0;
+	
+	const double alphaWall = -0.04;
 
-	// int bWallLeft = checkWallLeft();
-	// int bWallRight = checkWallRight();
-	// int bWallFront = checkWallFront();
+	double leftRange = getWallRangeLeft();
+	double rightRange = getWallRangeRight();
 
-	// double deltaLeft = bWallLeft * (irRangeLeft - centerVal);
-	// double deltaRight = bWallRight * (irRangeRight - centerVal);
+	int bCenterLeft = (leftRange > failCentering);
+	int bCenterRight = (rightRange > failCentering);
 
-	double straightDelta = ((getLeftEncoderVelocity() - getRightEncoderVelocity()) - 0.5);
-	// double meanWallDelta = (deltaLeft-deltaRight);
+	double deltaLeft = bCenterLeft * (leftRange - centerVal);
+	double deltaRight = bCenterRight * (rightRange - centerVal);
 
-	// if ( !bWallLeft && !bWallRight )
-	// {
-	// 	meanWallDelta = 0;
-	// }
-	// else
-	// {
-	// 	meanWallDelta = meanWallDelta / (bWallLeft + bWallRight);
-	// }
+	double straightDelta = ((getLeftEncoderVelocity() - getRightEncoderVelocity()) + encOffset);
+	double meanWallDelta = (deltaLeft-deltaRight);
 
-	// return (alpha*meanWallDelta + alphaEnc*straightDelta);
+	if ( bCenterLeft + bCenterRight > 0 )
+	{
+		meanWallDelta = meanWallDelta / (bCenterLeft + bCenterRight);
+	}
+        else
+		meanWallDelta = 0.0;
 
-	return alphaEnc*straightDelta;
+	return (alphaWall*meanWallDelta + alphaEnc*straightDelta);
 }
 
 

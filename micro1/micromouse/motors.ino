@@ -8,7 +8,7 @@ PololuQik2s9v1 qik(6, 5, 7);
 
 
 const int forwardMotorSpeed = -30;
-const int turnMotorSpeed = 20;
+const int turnMotorSpeed = -20;
 
 void motorSetForwardSpeed(double offset)
 {
