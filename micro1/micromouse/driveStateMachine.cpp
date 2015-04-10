@@ -93,7 +93,10 @@ void mouseDriveMachine()
 
 		// Stop the mouse if nextBlock indicates we are finished
 		if ( nextBlock < 0 || nextDir < -1 )
+		{
 			enterDriveState(eStopped);
+			return;
+		}
 
 //                if ( mouseBlock == 1 || mouseBlock == 6 )
 //                {

@@ -193,6 +193,20 @@ int getAbsoluteEdgeIdx(int relativeDir)
 }
 
 
+void setVertWall(int vertIdx, int edgeIdx)
+{
+	int opWallVert = mazeVerts[vertIdx].adjVertIds[edgeIdx];
+
+	// Wall has already been set.
+	if ( opWallVert < 0 )
+		return;
+
+	int opEdgeIdx = offsetEdgeIdx(edgeIdx,2);
+
+	mazeVerts[vertIdx].adjVertIds[edgeIdx] = -1;
+	mazeVerts[opWallVert].adjVertIds[opEdgeIdx] = -1;
+}
+
 // Correct maze in case assumed direction was wrong.
 void fixupOrientation()
 {
@@ -210,38 +224,22 @@ void fixupOrientation()
 
 		// Fixup this node, guaranteed to have walls in all but the 
 		int curVert = iMouse + j*mazeSize;
-		int prevVert = mazeVerts[iMouse + j*mazeSize].adjVertIds[1];
+		int prevVert = mazeVerts[curVert].adjVertIds[1];
 
 		mazeVerts[curVert].explored = 1;
 		mazeVerts[curVert].dist = j;
 		mazeVerts[curVert].bestPred = prevVert;
 		mazeVerts[curVert].searchPred = prevVert;
 
-                if ( j < jMouse )
-                {
-                      // East side must have a wall
-        		int eastVert = mazeVerts[curVert].adjVertIds[2];
-        		mazeVerts[curVert].adjVertIds[2] = -1;
-        		mazeVerts[eastVert].adjVertIds[0] = -1;
-                }
+		if ( j < jMouse )
+		{
+			// East side must have a wall
+			setVertWall(curVert, 2);
+		}
 	}
 
 	mouseDir = 3;
 	mouseBlock = actualMouseBlock;
-}
-
-void setVertWall(int vertIdx, int edgeIdx)
-{
-	int opWallVert = mazeVerts[vertIdx].adjVertIds[edgeIdx];
-
-	// Wall has already been set.
-	if ( opWallVert < 0 )
-		return;
-
-	int opEdgeIdx = offsetEdgeIdx(edgeIdx,2);
-
-	mazeVerts[vertIdx].adjVertIds[edgeIdx] = -1;
-	mazeVerts[opWallVert].adjVertIds[opEdgeIdx] = -1;
 }
 
 
@@ -370,15 +368,15 @@ void searchingNextBlock()
 		if ( mazeVerts[nextVert].explored > 0 )
 			continue;
 
-		edgeCosts[i+1] = calcBlockCost(nextVert);
+		// edgeCosts[i+1] = calcBlockCost(nextVert);
 
 		availableEdges[i+1] = nextVert;
 	}
 
-	// Short unrolled bubble-sort loop
-	bubbleSwap(edgeCosts, edgePriority, 0, 1);
-	bubbleSwap(edgeCosts, edgePriority, 1, 2);
-	bubbleSwap(edgeCosts, edgePriority, 0, 1);
+	// // Short unrolled bubble-sort loop
+	// bubbleSwap(edgeCosts, edgePriority, 0, 1);
+	// bubbleSwap(edgeCosts, edgePriority, 1, 2);
+	// bubbleSwap(edgeCosts, edgePriority, 0, 1);
 
 	availableEdges[3] = mazeVerts[mouseBlock].searchPred;
 

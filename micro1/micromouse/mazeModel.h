@@ -32,6 +32,8 @@ enum EMazeSolveState
   eFinished = 5,
 };
 
+void updateMazeSolverState();
+
 void setupMaze();
 void updateMouseDir(int incr);
 void enterMazeBlock(int nextBlock);
