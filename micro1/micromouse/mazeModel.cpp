@@ -36,8 +36,9 @@ void updateMazeSolverState()
 	{
 		if ( inGoalBlock() )
 		{
-			mazeSolvePath[0] = mouseBlock;
+			pathIdx = 0;
 			pathLength = 1;
+			mazeSolvePath[pathIdx] = mouseBlock;
 
 			mazeSolverState = eBacktrack;
 		}
