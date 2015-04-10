@@ -75,6 +75,8 @@ double calcForwardSpeedOffset()
 }
 
 
+int bEnterWallFront;
+
 void mouseDriveMachine()
 {
 	double forwardOffset = calcForwardSpeedOffset();
@@ -131,6 +133,8 @@ void mouseDriveMachine()
 
 			encoderResetDistanceCounters();
 			enterMazeBlock(nextBlock);
+
+			bEnterWallFront = nextBlockWallFront();
 		}
 	}
 	// Enter block handles driving from the "edge" to center of a block
@@ -138,7 +142,7 @@ void mouseDriveMachine()
 	{
 		motorSetForwardSpeed(forwardOffset);
 
-		if ( encoderForwardBlockFinished() )
+		if ( enterBlockRecenterFinished(bEnterWallFront) )
 		{
 			enterDriveState(eCenterBlock);
 

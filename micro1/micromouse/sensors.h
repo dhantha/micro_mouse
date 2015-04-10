@@ -12,6 +12,8 @@ int encoderForwardBlockFinished();
 int encoderTurn90Finished();
 int encoderTurn180Finished();
 
+int enterBlockRecenterFinished(int bHasWallFront);
+
 
 // IR Ranging functions
 void readIRRanges();

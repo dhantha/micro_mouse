@@ -244,6 +244,9 @@ const int sideWallRange = 150;
 const int frontWallRange = 200;
 const int frontTooCloseRange = 650;
 
+const int enterBlockStopRange = 620;
+const int enterBlockWallRange = 150;
+
 void readIRRanges()
 {
 	irRangeFront = analogRead(irPinFront);
@@ -281,7 +284,27 @@ int checkWallFront()
 	return (irRangeFront > frontWallRange);
 }
 
+int nextBlockWallFront()
+{
+	return (irRangeFront > enterBlockWallRange);
+}
+
 int stopWallFront()
 {
 	return (irRangeFront > frontTooCloseRange);
+}
+
+// TODO: This doesn't belong here
+// On entering a new block drive the mouse forward to the center if there's a wall in front
+int enterBlockRecenterFinished(int bHasWallFront)
+{
+	int meanEncCount = (leftEncCount + rightEncCount) / 2;
+
+	if ( !bHasWallFront )
+		return (meanEncCount >= halfBlockEncCount);
+
+	if ( meanEncCount >= (halfBlockEncCount + halfBlockEncCount/2) )
+		return true;
+
+	return (irRangeFront > enterBlockStopRange);
 }
