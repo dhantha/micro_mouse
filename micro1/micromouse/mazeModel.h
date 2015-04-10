@@ -13,10 +13,24 @@ struct SMazeVert
 const int mazeSize = 6;
 extern struct SMazeVert mazeVerts[mazeSize*mazeSize];
 
+extern int pathLength;
+extern short mazeSolvePath[mazeSize*mazeSize];
+
 // Mouse maze state
 extern short mouseDir;
 extern short mouseBlock;
 extern short nextBlock;
+
+// Solver state machine
+enum EMazeSolveState
+{
+  eSearching = 0,
+  eFoundCenter = 1,
+  eBacktrack = 2,
+  eRerun = 3,
+  eReturn = 4,
+  eFinished = 5,
+};
 
 void setupMaze();
 void updateMouseDir(int incr);

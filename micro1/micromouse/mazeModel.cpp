@@ -5,6 +5,68 @@
 
 struct SMazeVert mazeVerts[mazeSize*mazeSize];
 
+// For rerun to the middle
+int pathLength;
+int pathIdx;
+short mazeSolvePath[mazeSize*mazeSize];
+
+// Solver state variables
+double mazeGoal = ((mazeSize-1) / 2.0);
+enum EMazeSolveState mazeSolverState = eSearching;
+
+
+double calcBlockCost(int blockIdx)
+{
+	int iVert = blockIdx % mazeSize;
+	int jVert = blockIdx / mazeSize;
+
+	return (mazeGoal-iVert)*(mazeGoal-iVert) + (mazeGoal-jVert)*(mazeGoal-jVert);
+}
+
+int inGoalBlock()
+{
+	double chkDistanceSq = calcBlockCost(mouseBlock);
+
+	return (chkDistanceSq < 1.0);
+}
+
+void updateMazeSolverState()
+{
+	if ( mazeSolverState == eSearching )
+	{
+		if ( inGoalBlock() )
+		{
+			mazeSolvePath[0] = mouseBlock;
+			pathLength = 1;
+
+			mazeSolverState = eBacktrack;
+		}
+	}
+
+	else if ( mazeSolverState == eBacktrack )
+	{
+		if ( mouseBlock == 0 )
+		{
+			pathIdx = pathLength-1;
+
+			mazeSolverState = eRerun;
+		}
+	}
+
+	else if ( mazeSolverState == eRerun )
+	{
+		if ( pathIdx == 0 )
+			mazeSolverState = eReturn;
+	}
+
+	else if ( mazeSolverState == eReturn )
+	{
+		if ( pathIdx == pathLength-1 )
+			mazeSolverState = eFinished;
+	}
+}
+
+
 int bMouseOriented = 0;
 
 
@@ -61,6 +123,9 @@ void setupMaze()
 
   // Mouse doesn't actually know what direction it's pointing
   bMouseOriented = 0;
+
+  // Set initial solver state to searching
+  mazeSolverState = eSearching;
 }
 
 //TODO: These updates all belong somewhere else
@@ -76,18 +141,34 @@ void updateMouseDir(int incr)
 
 void enterMazeBlock(int nextBlock)
 {
-	int curDist = mazeVerts[mouseBlock].dist;
-	if ( curDist+1 < mazeVerts[nextBlock].dist )
+	if ( mazeSolverState == eSearching )
 	{
-		mazeVerts[nextBlock].dist = curDist + 1;
-		mazeVerts[nextBlock].bestPred = mouseBlock;
+		int curDist = mazeVerts[mouseBlock].dist;
+		if ( curDist+1 < mazeVerts[nextBlock].dist )
+		{
+			mazeVerts[nextBlock].dist = curDist + 1;
+			mazeVerts[nextBlock].bestPred = mouseBlock;
+		}
+
+		if ( !mazeVerts[nextBlock].explored )
+		{
+			mazeVerts[nextBlock].explored = 1;
+			mazeVerts[nextBlock].searchPred = mouseBlock;
+		}
 	}
 
-	if ( !mazeVerts[nextBlock].explored )
+	else if ( mazeSolverState == eBacktrack )
 	{
-		mazeVerts[nextBlock].explored = 1;
-		mazeVerts[nextBlock].searchPred = mouseBlock;
+		pathIdx += 1;
+		pathLength += 1;
+		mazeSolvePath[pathIdx] = nextBlock;
 	}
+
+	else if ( mazeSolverState == eRerun )
+		pathIdx -= 1;
+
+	else if ( mazeSolverState == eReturn )
+		pathIdx += 1;
 
 	mouseBlock = nextBlock;
 	nextBlock = -1;
@@ -227,13 +308,21 @@ void updateAdjacentBlockInfo()
 }
 
 int getNextTurn()
-{ 
-	int nextDir = 0;
+{
+	// Invalid next block
+	if ( nextBlock < 0 )
+		return -2;
+
+	int nextDir = -1;
 	for ( nextDir=0; nextDir < 4; ++nextDir )
 	{
 		if ( nextBlock == mazeVerts[mouseBlock].adjVertIds[nextDir] )
 			break;
 	}
+
+	// No options for the next turn
+	if ( nextDir < 0 )
+		return -2;
 
 	int deltaDir = nextDir - mouseDir;
 	if ( deltaDir < -1 )
@@ -245,12 +334,32 @@ int getNextTurn()
 	return deltaDir;
 }
 
+
+void bubbleSwap(double cost[3], int list[4], int idxA, int idxB)
+{
+	int tmp = list[idxA];
+	double tmpCost = cost[idxA];
+
+	if ( tmpCost > cost[idxB] )
+	{
+		list[idxA] = list[idxB];
+		list[idxB] = tmp;
+
+		cost[idxA] = cost[idxB];
+		cost[idxB] = tmpCost;
+	}
+}
+
 // Prioritized order (straight,left,right,backtrack)
-const int edgePriority[4] = {1, 0, 2, 3};
-void findNextBlock()
+void searchingNextBlock()
 { 
-        int i = 0;
+	int i = 0;
+
+	double edgeCosts[3] = {mazeSize*mazeSize,mazeSize*mazeSize,mazeSize*mazeSize};
+
+	int edgePriority[4] = {1, 0, 2, 3};
 	int availableEdges[4] = {-1,-1,-1,-1};
+
 	for ( i=-1; i <= 1; ++i )
 	{
 		int edgeIdx = getAbsoluteEdgeIdx(i);
@@ -261,8 +370,15 @@ void findNextBlock()
 		if ( mazeVerts[nextVert].explored > 0 )
 			continue;
 
+		edgeCosts[i+1] = calcBlockCost(nextVert);
+
 		availableEdges[i+1] = nextVert;
 	}
+
+	// Short unrolled bubble-sort loop
+	bubbleSwap(edgeCosts, edgePriority, 0, 1);
+	bubbleSwap(edgeCosts, edgePriority, 1, 2);
+	bubbleSwap(edgeCosts, edgePriority, 0, 1);
 
 	availableEdges[3] = mazeVerts[mouseBlock].searchPred;
 
@@ -278,6 +394,50 @@ void findNextBlock()
 
 	nextBlock = availableEdges[takeEdge];
 }
+
+void backtrackNextBlock()
+{
+	nextBlock = mazeVerts[mouseBlock].bestPred;
+}
+
+void rerunNextBlock()
+{
+	nextBlock = -1;
+	if ( pathIdx-1 >= 0 )
+		nextBlock = mazeSolvePath[pathIdx-1];
+}
+
+void returnNextBlock()
+{
+	nextBlock = -1;
+	if ( pathIdx+1 < pathLength )
+		nextBlock = mazeSolvePath[pathIdx+1];
+}
+
+void finishedNextBlock()
+{
+	nextBlock = -2;
+}
+
+
+void findNextBlock()
+{
+	if ( mazeSolverState == eSearching )
+		searchingNextBlock();
+
+	else if ( mazeSolverState == eBacktrack )
+		backtrackNextBlock();
+
+	else if ( mazeSolverState == eRerun )
+		rerunNextBlock();
+
+	else if ( mazeSolverState == eReturn )
+		returnNextBlock();
+
+	else
+		void finishedNextBlock();
+}
+
 
 const int lenX = 4*mazeSize;
 const int lenY = 2*mazeSize;
