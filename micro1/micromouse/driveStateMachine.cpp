@@ -89,6 +89,10 @@ void mouseDriveMachine()
 		findNextBlock();
 		int nextDir = getNextTurn();
 
+		// Stop the mouse if nextBlock indicates we are finished
+		if ( nextBlock < 0 || nextDir < -1 )
+			enterDriveState(eStopped);
+
 //                if ( mouseBlock == 1 || mouseBlock == 6 )
 //                {
 //                  enterDriveState(eDebugMazePrint);

@@ -10,16 +10,6 @@
 
 double calcForwardSpeedOffset();
 
-enum ESolveState
-{
-  eSearching = 0,
-  eFoundCenter = 1,
-  eBacktrack = 2,
-  eRerun = 3,
-};
-
-enum ESolveState mouseSolveState = eSearching;
-
 void setup()
 {
   // DEBUG: Used for debugging output to computer
@@ -44,7 +34,6 @@ void setup()
   // digitalWrite(44, LOW);
 
   enterDriveState(eCenterBlock);
-  mouseSolveState = eSearching;
 }
 
 void loop()
