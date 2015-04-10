@@ -206,7 +206,7 @@ void encoderResetDistanceCounters()
 
 // Encoder count constants for block size/rotation
 const int halfBlockEncCount = 42; // 40;
-const int turn90EncCount = 23;
+const int turn90EncCount = 23; // encorder turn count to make 90 degree turn 
 
 int encoderForwardBlockFinished()
 {
@@ -242,7 +242,7 @@ int irRangeRight;
 
 const int sideWallRange = 150;
 const int frontWallRange = 200;
-const int frontTooCloseRange = 650;
+const int frontTooCloseRange = 650; // front IR maximum treshold 
 
 void readIRRanges()
 {
