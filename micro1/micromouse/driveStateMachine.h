@@ -11,6 +11,8 @@ enum EDriveState
   eTurnLeft = 4,
   eTurnRight = 5,
   eTurnAround = 6,
+  
+  eDebugMazePrint = 7,
 };
 
 // Mouse maze state
@@ -21,6 +23,7 @@ extern short nextBlock;
 extern enum EDriveState mouseDriveState;
 
 
+int inDriveState(enum EDriveState checkState);
 void enterDriveState(enum EDriveState nextState);
 void mouseDriveMachine();
 

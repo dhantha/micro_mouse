@@ -10,7 +10,7 @@ struct SMazeVert
   short searchPred;
 };
 
-const int mazeSize = 16;
+const int mazeSize = 6;
 extern struct SMazeVert mazeVerts[mazeSize*mazeSize];
 
 // Mouse maze state
@@ -25,3 +25,7 @@ int getAbsoluteEdgeIdx(int relativeDir);
 void updateAdjacentBlockInfo();
 int getNextTurn();
 void findNextBlock();
+
+void debugUpdateMazeString();
+void debugResetMazePrint();
+char* debugMazeStringRow();

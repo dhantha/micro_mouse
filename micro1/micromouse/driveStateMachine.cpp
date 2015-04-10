@@ -89,6 +89,12 @@ void mouseDriveMachine()
 		findNextBlock();
 		int nextDir = getNextTurn();
 
+//                if ( mouseBlock == 1 || mouseBlock == 6 )
+//                {
+//                  enterDriveState(eDebugMazePrint);
+//                  return;
+//                }
+
 		if ( nextDir == 0 )
 			enterDriveState(eLeaveBlock);
 		else if ( nextDir == -1 )
@@ -182,5 +188,10 @@ void mouseDriveMachine()
 	{
 		motorSetStopSpeed();
 	}
+        else if ( inDriveState(eDebugMazePrint) )
+        {
+          motorSetStopSpeed();
+          enterDriveState(eStopped);
+        }
 
 }

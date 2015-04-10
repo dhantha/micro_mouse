@@ -22,13 +22,14 @@ enum ESolveState mouseSolveState = eSearching;
 
 void setup()
 {
-  setupMaze();
-
   // DEBUG: Used for debugging output to computer
   Serial.begin(9600);
   
   motorSetup();
   encoderSetup();
+  readIRRanges();
+  
+  setupMaze();
   
 
   // irRangeSetup();
@@ -84,6 +85,21 @@ void loop()
 //  Serial.print(irRight);
 //  Serial.print(", ");
 //  Serial.println(irFront);
+
+//  if ( inDriveState(eDebugMazePrint) )
+//  {
+//    Serial.println(mouseBlock);
+//    Serial.println(mouseDir);
+//    
+//    Serial.println(nextBlock);
+//    Serial.println(getNextTurn());
+//    
+//    debugUpdateMazeString();
+//    debugResetMazePrint();
+//    
+//    for ( int i=0; i < 2*mazeSize+1; ++i )
+//      Serial.println(debugMazeStringRow());
+//  }
 
   // State machine
   mouseDriveMachine();

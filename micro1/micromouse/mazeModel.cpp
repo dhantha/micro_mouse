@@ -1,6 +1,8 @@
 #include "mazeModel.h"
 #include "sensors.h"
 
+#include "driveStateMachine.h"
+
 struct SMazeVert mazeVerts[mazeSize*mazeSize];
 
 int bMouseOriented = 0;
@@ -10,7 +12,7 @@ void setWalls();
 
 void resetMazeVert(int iVert, int jVert)
 {
-	const int mazeOffsetPairs[] = {-1,0,0,-1,1,0,0,1};
+	const int mazeOffsetPairs[] = {-1,0, 0,-1, 1,0, 0,1};
 
 	mazeVerts[iVert+jVert*mazeSize].explored = 0;
 	mazeVerts[iVert+jVert*mazeSize].dist = 65535;
@@ -21,7 +23,7 @@ void resetMazeVert(int iVert, int jVert)
 	for ( int k=0; k < 4; ++k )
 	{
 		int iAdjVert = iVert+mazeOffsetPairs[2*k];
-		int jAdjVert = iVert+mazeOffsetPairs[2*k+1];
+		int jAdjVert = jVert+mazeOffsetPairs[2*k+1];
 
 		mazeVerts[iVert+jVert*mazeSize].adjVertIds[k] = -1;
 
@@ -81,7 +83,7 @@ void enterMazeBlock(int nextBlock)
 		mazeVerts[nextBlock].bestPred = mouseBlock;
 	}
 
-	if ( mazeVerts[nextBlock].explored < 0 )
+	if ( !mazeVerts[nextBlock].explored )
 	{
 		mazeVerts[nextBlock].explored = 1;
 		mazeVerts[nextBlock].searchPred = mouseBlock;
@@ -127,17 +129,20 @@ void fixupOrientation()
 
 		// Fixup this node, guaranteed to have walls in all but the 
 		int curVert = iMouse + j*mazeSize;
-		int prevVert = mazeVerts[iMouse + j*mazeSize].adjVertIds[0];
+		int prevVert = mazeVerts[iMouse + j*mazeSize].adjVertIds[1];
 
 		mazeVerts[curVert].explored = 1;
 		mazeVerts[curVert].dist = j;
 		mazeVerts[curVert].bestPred = prevVert;
 		mazeVerts[curVert].searchPred = prevVert;
 
-		// East side must have a wall
-		int eastVert = mazeVerts[curVert].adjVertIds[2];
-		mazeVerts[curVert].adjVertIds[2] = -1;
-		mazeVerts[eastVert].adjVertIds[0] = -1;
+                if ( j < jMouse )
+                {
+                      // East side must have a wall
+        		int eastVert = mazeVerts[curVert].adjVertIds[2];
+        		mazeVerts[curVert].adjVertIds[2] = -1;
+        		mazeVerts[eastVert].adjVertIds[0] = -1;
+                }
 	}
 
 	mouseDir = 3;
@@ -222,7 +227,7 @@ void updateAdjacentBlockInfo()
 }
 
 int getNextTurn()
-{
+{ 
 	int nextDir = 0;
 	for ( nextDir=0; nextDir < 4; ++nextDir )
 	{
@@ -243,10 +248,10 @@ int getNextTurn()
 // Prioritized order (straight,left,right,backtrack)
 const int edgePriority[4] = {1, 0, 2, 3};
 void findNextBlock()
-{
+{ 
         int i = 0;
-	int availableEdges[4];
-	for ( i=-1; i < 1; ++i )
+	int availableEdges[4] = {-1,-1,-1,-1};
+	for ( i=-1; i <= 1; ++i )
 	{
 		int edgeIdx = getAbsoluteEdgeIdx(i);
 		if ( mazeVerts[mouseBlock].adjVertIds[edgeIdx] < 0 )
@@ -342,8 +347,8 @@ void debugUpdateMazeString()
 
 			if ( mazeVerts[chkNode].adjVertIds[2] >= 0 )
 			{
-				mazeStr[(2*(j+1))*(lenX+padX)+4*i] = '|';
-				mazeStr[(2*(j+1)+1)*(lenX+padX)+4*i] = '|';
+				mazeStr[(2*j)*(lenX+padX)+4*(i+1)] = ' ';
+				mazeStr[(2*j+1)*(lenX+padX)+4*(i+1)] = ' ';
 			}
 
 			if ( mazeVerts[chkNode].adjVertIds[3] >= 0 )
