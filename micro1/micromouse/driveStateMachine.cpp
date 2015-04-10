@@ -85,6 +85,8 @@ void mouseDriveMachine()
 	{
 		encoderResetDistanceCounters();
 
+		updateMazeSolverState();
+
 		// Depending on solve-state
 		findNextBlock();
 		int nextDir = getNextTurn();
