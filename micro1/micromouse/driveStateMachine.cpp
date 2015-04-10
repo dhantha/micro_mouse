@@ -43,7 +43,7 @@ double calcForwardSpeedOffset()
 {
 	// IR range constants for block wall distances
 	const double failCentering = 175.0; // 
-	const double centerVal = 250.0; // 255.0; keeps the mouse in the center of the maze
+	const double centerVal = 250.0; // 255.0;
 
 	// Overly simplistic control system constants
 	// tries to maintain straight forward movement

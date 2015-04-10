@@ -26,6 +26,7 @@ extern enum EDriveState mouseDriveState;
 int inDriveState(enum EDriveState checkState);
 void enterDriveState(enum EDriveState nextState);
 void mouseDriveMachine();
+void updateMazeSolverState();
 
 
 //Debug only!!!
