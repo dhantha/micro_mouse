@@ -433,7 +433,7 @@ void findNextBlock()
 		returnNextBlock();
 
 	else
-		void finishedNextBlock();
+		finishedNextBlock();
 }
 
 
