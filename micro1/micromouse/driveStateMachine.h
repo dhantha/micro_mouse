@@ -27,6 +27,7 @@ int inDriveState(enum EDriveState checkState);
 void enterDriveState(enum EDriveState nextState);
 void mouseDriveMachine();
 void updateMazeSolverState();
+int nextBlockWallFront();
 
 
 //Debug only!!!
