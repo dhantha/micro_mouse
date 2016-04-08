@@ -43,11 +43,11 @@ double calcForwardSpeedOffset()
 {
 	// IR range constants for block wall distances
 	const double failCentering = 175.0; // 
-	const double centerVal = 350; //250.0; // 255.0;
+	const double centerVal = 345;
 
 	// Overly simplistic control system constants
 	// tries to maintain straight forward movement
-	const double encOffset = 0.02;
+	const double encOffset = 0.0;
 	const double alphaEnc = -5.0;
 	
 	const double alphaWall = -0.04;
@@ -102,9 +102,12 @@ void mouseDriveMachine()
 
 //                if ( mouseBlock == 1 || mouseBlock == 6 )
 //                {
-//                  enterDriveState(eDebugMazePrint);
+//                  //enterDriveState(eDebugMazePrint);
+//                  enterDriveState(eStopped);
+//                  printMazeState();
 //                  return;
 //                }
+                //printMazeState();
 
 		if ( nextDir == 0 )
 			enterDriveState(eLeaveBlock);

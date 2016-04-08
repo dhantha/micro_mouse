@@ -10,6 +10,8 @@ int pathLength;
 int pathIdx;
 short mazeSolvePath[mazeSize*mazeSize];
 
+extern double speedMult;
+
 // Solver state variables
 double mazeGoal = ((mazeSize-1) / 2.0);
 enum EMazeSolveState mazeSolverState = eSearching;
@@ -30,6 +32,8 @@ int inGoalBlock()
 	return (chkDistanceSq < 1.0);
 }
 
+const double rerunMult = 1.5;
+
 void updateMazeSolverState()
 {
 	if ( mazeSolverState == eSearching )
@@ -41,6 +45,7 @@ void updateMazeSolverState()
 			mazeSolvePath[pathIdx] = mouseBlock;
 
 			mazeSolverState = eBacktrack;
+                        speedMult = rerunMult;
 		}
 	}
 
@@ -51,6 +56,7 @@ void updateMazeSolverState()
 			pathIdx = pathLength-1;
 
 			mazeSolverState = eRerun;
+                        speedMult = rerunMult;
 		}
 	}
 
@@ -369,15 +375,15 @@ void searchingNextBlock()
 		if ( mazeVerts[nextVert].explored > 0 )
 			continue;
 
-		// edgeCosts[i+1] = calcBlockCost(nextVert);
+		edgeCosts[i+1] = calcBlockCost(nextVert);
 
 		availableEdges[i+1] = nextVert;
 	}
 
-	// // Short unrolled bubble-sort loop
-	// bubbleSwap(edgeCosts, edgePriority, 0, 1);
-	// bubbleSwap(edgeCosts, edgePriority, 1, 2);
-	// bubbleSwap(edgeCosts, edgePriority, 0, 1);
+	// Short unrolled bubble-sort loop
+	bubbleSwap(edgeCosts, edgePriority, 0, 1);
+	bubbleSwap(edgeCosts, edgePriority, 1, 2);
+	bubbleSwap(edgeCosts, edgePriority, 0, 1);
 
 	availableEdges[3] = mazeVerts[mouseBlock].searchPred;
 

@@ -10,10 +10,13 @@
 
 double calcForwardSpeedOffset();
 
+SoftwareSerial btooth(15,14);
+
 void setup()
 {
   // DEBUG: Used for debugging output to computer
   Serial.begin(9600);
+  btooth.begin(9600);
   
   motorSetup();
   encoderSetup();
@@ -36,17 +39,35 @@ void setup()
   enterDriveState(eCenterBlock);
 }
 
+void printMazeState()
+{
+  btooth.println(mouseBlock);
+  btooth.println(mouseDir);
+  
+  btooth.println(nextBlock);
+  btooth.println(getNextTurn());
+  
+  debugUpdateMazeString();
+  debugResetMazePrint();
+  
+  for ( int i=0; i < 2*mazeSize+1; ++i )
+  {
+    btooth.println(debugMazeStringRow());
+    delay(1);
+  }
+}
+
 void loop()
 {
   encoderUpdateCounts();
   readIRRanges();
 
-  // double leftVel = getLeftEncoderVelocity();
-  // double rightVel = getRightEncoderVelocity();
+//   double leftVel = getLeftEncoderVelocity();
+//   double rightVel = getRightEncoderVelocity();
 
-  // Serial.print(leftVel);
-  // Serial.print(", ");
-  // Serial.println(rightVel);
+//   Serial.print(leftVel);
+//   Serial.print(", ");
+//   Serial.println(rightVel);
   
 //  double headingDelta = maintainHeadingOffset();
 //  double goalHeading = getGoalHeading();
@@ -65,8 +86,8 @@ void loop()
   double irRight = getWallRangeRight();
   double irFront = getWallRangeFront();
 
-  // double offset = calcForwardSpeedOffset();
-  // Serial.println(offset);
+//   double offset = calcForwardSpeedOffset();
+//   Serial.println(offset);
   
 //  Serial.print("IR: ");
 //  Serial.print(irLeft);

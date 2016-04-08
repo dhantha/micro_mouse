@@ -22,6 +22,7 @@ extern short nextBlock;
 
 extern enum EDriveState mouseDriveState;
 
+void printMazeState();
 
 int inDriveState(enum EDriveState checkState);
 void enterDriveState(enum EDriveState nextState);

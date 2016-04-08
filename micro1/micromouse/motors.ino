@@ -7,19 +7,21 @@
 PololuQik2s9v1 qik(6, 5, 7);
 
 
-const int forwardMotorSpeed = -15;
+double speedMult = 1.0;
+
+const int forwardMotorSpeed = 15;
 const int turnMotorSpeed = 10;
 
 void motorSetForwardSpeed(double offset)
 {
-        if ( offset > -forwardMotorSpeed*0.2 )
-          offset = -forwardMotorSpeed*0.2;
-        else if ( offset < forwardMotorSpeed*0.2 )
-          offset = forwardMotorSpeed*0.2;
+        if ( offset < -speedMult*forwardMotorSpeed*0.2 )
+          offset = -speedMult*forwardMotorSpeed*0.2;
+        else if ( offset > speedMult*forwardMotorSpeed*0.2 )
+          offset = speedMult*forwardMotorSpeed*0.2;
             
         //Serial.println("Forward");
-	qik.setM0Speed(-(forwardMotorSpeed + offset));
-	qik.setM1Speed(forwardMotorSpeed - offset);
+	qik.setM0Speed(-(speedMult*forwardMotorSpeed + offset));
+	qik.setM1Speed(speedMult*forwardMotorSpeed - offset);
 }
 
 void motorSetTurnSpeed(int turnDir)

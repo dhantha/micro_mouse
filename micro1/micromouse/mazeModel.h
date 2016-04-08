@@ -10,7 +10,7 @@ struct SMazeVert
   short searchPred;
 };
 
-const int mazeSize = 16;
+const int mazeSize = 6;
 extern struct SMazeVert mazeVerts[mazeSize*mazeSize];
 
 extern int pathLength;
